@@ -1,0 +1,9 @@
+[{
+    "modid": "recipeTweakingCore",
+    "name": "Recipe Tweaking Core",
+    "description": "Library mod for screwing around with recipes",
+    "version": "${version}",
+    "mcversion": "1.6.4",
+    "authors": [ "tterrag" ],
+    "requiredMods": [ "Forge" ]
+}]
