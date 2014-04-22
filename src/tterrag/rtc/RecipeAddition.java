@@ -15,7 +15,7 @@ public @interface RecipeAddition
 	public enum EventTime { INIT, POST_INIT, PLAYER_JOIN }
 	
 	/**
-	 * The event at which this method is to be executed
+	 * The {@link EventTime} at which this method is to be executed
 	 */
 	EventTime time() default EventTime.POST_INIT;
 	

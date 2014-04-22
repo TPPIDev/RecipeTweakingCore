@@ -1,7 +1,6 @@
 package tterrag.rtc;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -34,14 +33,14 @@ public class RecipeTweakingCore
 	public static Logger logger = Logger.getLogger("RecipeTweakingCore");
 
 	@EventHandler
-	public static void init(FMLInitializationEvent event)
+	public void init(FMLInitializationEvent event)
 	{
 		doTweaks(EventTime.INIT);
 		
 	}
 
 	@EventHandler
-	public static void postInit(FMLPostInitializationEvent event)
+	public void postInit(FMLPostInitializationEvent event)
 	{
 		MinecraftForge.EVENT_BUS.register(new TweakingRegistry());
 		
@@ -62,6 +61,7 @@ public class RecipeTweakingCore
 	{
 		for (String packageName : packageNames)
 		{
+			System.out.println(packageName);
 			removeRecipes(event, packageName);
 			addRecipes(event, packageName);
 		}
@@ -72,16 +72,14 @@ public class RecipeTweakingCore
 		try
 		{
 			ClassPath classpath = ClassPath.from(RecipeTweakingCore.class.getClassLoader());
-			Set<ClassInfo> classes = classpath.getTopLevelClasses("tppitweaks.recipetweaks.modTweaks");
+			Set<ClassInfo> classes = classpath.getTopLevelClasses(packageName);
 
 			for (ClassInfo c : classes)
 			{
-				Class<?> clazz = c.load();
-				for (Method m : clazz.getDeclaredMethods())
+				for (Method m : loadClassSafe(c))
 				{
 					RecipeRemoval r = m.getAnnotation(RecipeRemoval.class);
-					System.out.println(c.getName() + " : " + m.getName() + " : " + Arrays.deepToString(m.getDeclaredAnnotations()));
-					if (r != null && allModsLoaded(r.requiredModids()))
+					if (r != null && allModsLoaded(r.requiredModids()) && r.time() == event)
 					{
 						m.invoke(null, new Object[] {});
 					}
@@ -98,20 +96,19 @@ public class RecipeTweakingCore
 		TweakingRegistry.removeRecipes();
 	}
 
-	private static void addRecipes(EventTime time, String packageName)
+	private static void addRecipes(EventTime event, String packageName)
 	{
 		try
 		{
 			ClassPath classpath = ClassPath.from(RecipeTweakingCore.class.getClassLoader());
-			Set<ClassInfo> classes = classpath.getTopLevelClasses("tppitweaks.recipetweaks.modTweaks");
+			Set<ClassInfo> classes = classpath.getTopLevelClasses(packageName);
 
 			for (ClassInfo c : classes)
 			{
-				Class<?> clazz = c.load();
-				for (Method m : clazz.getDeclaredMethods())
+				for (Method m : loadClassSafe(c))
 				{
 					RecipeAddition r = m.getAnnotation(RecipeAddition.class);
-					if (r != null && allModsLoaded(r.requiredModids()) && r.time() == time)
+					if (r != null && allModsLoaded(r.requiredModids()) && r.time() == event)
 					{
 						m.invoke(null, new Object[] {});
 					}
@@ -123,6 +120,20 @@ public class RecipeTweakingCore
 			logger.severe("Could not perform recipe additions. This is a serious error!");
 			t.printStackTrace();
 			throw new RuntimeException("Recipe tweaks failed.");
+		}
+	}
+	
+	private static Method[] loadClassSafe(ClassInfo c)
+	{
+		try
+		{
+			Class<?> clazz = c.load();
+			return clazz.getDeclaredMethods();
+		}
+		catch (Throwable t)
+		{
+			logger.info(String.format("Class %s threw an error, skipping...", c.getName()));
+			return new Method[]{};
 		}
 	}
 

@@ -147,6 +147,7 @@ public class TweakingRegistry
 		{
 			RecipeTweakingCore.doTweaks(EventTime.PLAYER_JOIN);
 			RecipeTweakingCore.donePlayerJoinTweaks = true;
+			System.out.println("Attempted late recipe addition");
 		}
 	}
 }
