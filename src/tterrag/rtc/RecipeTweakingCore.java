@@ -61,7 +61,6 @@ public class RecipeTweakingCore
 	{
 		for (String packageName : packageNames)
 		{
-			System.out.println(packageName);
 			removeRecipes(event, packageName);
 			addRecipes(event, packageName);
 		}

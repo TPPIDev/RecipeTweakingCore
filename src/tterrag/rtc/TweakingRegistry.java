@@ -36,6 +36,11 @@ public class TweakingRegistry
 		}
 	}
 	
+	/**
+	 * The main way of removing recipes
+	 * @param id - ID of the item/block being removed
+	 * @param damage - damage value/ metadata (-1 for all)
+	 */
 	public static void markItemForRecipeRemoval(int id, int damage) {	
 		if(!recipesToRemove.containsKey(id)) {
 			recipesToRemove.put(id, new HashSet<Integer>());
@@ -147,7 +152,6 @@ public class TweakingRegistry
 		{
 			RecipeTweakingCore.doTweaks(EventTime.PLAYER_JOIN);
 			RecipeTweakingCore.donePlayerJoinTweaks = true;
-			System.out.println("Attempted late recipe addition");
 		}
 	}
 }
