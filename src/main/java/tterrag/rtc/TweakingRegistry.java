@@ -14,6 +14,7 @@ import tterrag.rtc.RecipeAddition.EventTime;
 public class TweakingRegistry
 {
 	private static HashMap<Integer, HashSet<Integer>> recipesToRemove = new HashMap<Integer, HashSet<Integer>>();
+
 	private static HashMap<Integer, HashMap<Integer, String[]>> removalReasons = new HashMap<Integer, HashMap<Integer,String[]>>();
 	
 	public enum TweakingAction
@@ -80,10 +81,7 @@ public class TweakingRegistry
 		
 		removalReasons.get(id).put(damage, lines);
 	}
-	
-	static HashSet<Integer> getDamageValuesToRemove(int itemID) {
-		return recipesToRemove.get(itemID);
-	}
+
 	
 	@SuppressWarnings({ "unchecked" })
 	static void removeRecipes()
@@ -103,14 +101,20 @@ public class TweakingRegistry
 	
 	static boolean canRemoveRecipe(IRecipe r)
 	{
+		System.out.println(recipesToRemove.keySet().toString());
 		try
 		{
 			ItemStack output = r.getRecipeOutput();
-			HashSet<Integer> validMetas = getDamageValuesToRemove(output.itemID);
+			if (output == null) return false;
+			HashSet<Integer> validMetas = recipesToRemove.get(output.itemID);
+			if (output.itemID < 500) return false;
+			System.out.println(output.itemID);
+			if (validMetas == null) return false;
 			return validMetas.contains(-1) || validMetas.contains(output.getItemDamage());
 		}
 		catch (Throwable e)
 		{
+			e.printStackTrace();
 			return false;
 		}
 	}
