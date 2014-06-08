@@ -35,8 +35,9 @@ public class RecipeTweakingCore
 	@EventHandler
 	public void init(FMLInitializationEvent event)
 	{
-		doTweaks(EventTime.INIT);
+		MinecraftForge.EVENT_BUS.register(new TooltipHandler());
 		
+		doTweaks(EventTime.INIT);
 	}
 
 	@EventHandler

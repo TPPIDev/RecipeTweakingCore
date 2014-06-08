@@ -21,7 +21,8 @@ public class TweakingRegistry
 	{
 		REMOVED("Removed:"),
 		CHANGED("Recipe Changed:"),
-		ADDED("Added:");
+		ADDED("Added:"),
+		NOTE("Note: ");
 
 		private String name;
 		
@@ -56,7 +57,6 @@ public class TweakingRegistry
 	 * @param action
 	 * @param details
 	 */
-	@Deprecated
 	public static void markItemForRecipeRemoval(int id, int damage, TweakingAction action, String... details) {	
 		markItemForRecipeRemoval(id, damage);
 		addTweakedTooltip(id, damage, action, details);
@@ -65,7 +65,6 @@ public class TweakingRegistry
 	/**
 	 * Currently unused, will eventually be to add tooltips to tweaked items automatically
 	 */
-	@Deprecated
 	public static void addTweakedTooltip(int id, int damage, TweakingAction action, String... details)
 	{
 		if (!removalReasons.containsKey(id))
@@ -96,19 +95,16 @@ public class TweakingRegistry
 			}
 		}
 		recipesToRemove.clear();
-		removalReasons.clear();
 	}
 	
 	static boolean canRemoveRecipe(IRecipe r)
 	{
-		System.out.println(recipesToRemove.keySet().toString());
 		try
 		{
 			ItemStack output = r.getRecipeOutput();
 			if (output == null) return false;
 			HashSet<Integer> validMetas = recipesToRemove.get(output.itemID);
 			if (output.itemID < 500) return false;
-			System.out.println(output.itemID);
 			if (validMetas == null) return false;
 			return validMetas.contains(-1) || validMetas.contains(output.getItemDamage());
 		}
