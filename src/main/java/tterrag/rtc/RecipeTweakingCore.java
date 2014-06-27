@@ -60,6 +60,8 @@ public class RecipeTweakingCore
 
 	static void doTweaks(EventTime event)
 	{
+		logger.info("Doing tweaks at time: " + event.toString());
+		
 		for (String packageName : packageNames)
 		{
 			removeRecipes(event, packageName);
@@ -88,9 +90,8 @@ public class RecipeTweakingCore
 		}
 		catch (Throwable t)
 		{
-			logger.severe("Could not perform recipe removals. This is a serious error!");
 			t.printStackTrace();
-			throw new RuntimeException("Recipe tweaks failed.");
+			logger.severe("[Removals] An exception was thrown processing a class, these removals will likely not occur.");
 		}
 
 		TweakingRegistry.removeRecipes();
@@ -117,9 +118,8 @@ public class RecipeTweakingCore
 		}
 		catch (Throwable t)
 		{
-			logger.severe("Could not perform recipe additions. This is a serious error!");
 			t.printStackTrace();
-			throw new RuntimeException("Recipe tweaks failed.");
+			logger.severe("[Additions] An exception was thrown processing a class, these additons will likely not occur.");
 		}
 	}
 	
