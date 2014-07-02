@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.event.ForgeSubscribe;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import tterrag.rtc.RecipeAddition.EventTime;
 
 public class TweakingRegistry
@@ -146,11 +146,11 @@ public class TweakingRegistry
 	}
 	
 	@ForgeSubscribe
-	public void onPlayerJoin(EntityJoinWorldEvent event)
+	public void onWorldLoad(WorldEvent.Load event)
 	{
 		if (!RecipeTweakingCore.donePlayerJoinTweaks)
 		{
-			RecipeTweakingCore.doTweaks(EventTime.PLAYER_JOIN);
+			RecipeTweakingCore.doTweaks(EventTime.WORLD_LOAD);
 			RecipeTweakingCore.donePlayerJoinTweaks = true;
 		}
 	}

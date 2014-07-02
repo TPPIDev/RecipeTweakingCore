@@ -1,9 +1,9 @@
 package tterrag.rtc;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import net.minecraftforge.common.MinecraftForge;
 import tterrag.rtc.RecipeAddition.EventTime;
@@ -30,13 +30,11 @@ public class RecipeTweakingCore
 
 	static boolean donePlayerJoinTweaks = false;
 
-	public static Logger logger = Logger.getLogger("RecipeTweakingCore");
-
 	@EventHandler
 	public void init(FMLInitializationEvent event)
 	{
 		MinecraftForge.EVENT_BUS.register(new TooltipHandler());
-		
+
 		doTweaks(EventTime.INIT);
 	}
 
@@ -44,7 +42,7 @@ public class RecipeTweakingCore
 	public void postInit(FMLPostInitializationEvent event)
 	{
 		MinecraftForge.EVENT_BUS.register(new TweakingRegistry());
-		
+
 		doTweaks(EventTime.POST_INIT);
 	}
 
@@ -60,69 +58,81 @@ public class RecipeTweakingCore
 
 	static void doTweaks(EventTime event)
 	{
-		logger.info("Doing tweaks at time: " + event.toString());
-		
+		log("Doing tweaks at time: " + event.toString());
+
 		for (String packageName : packageNames)
 		{
-			removeRecipes(event, packageName);
-			addRecipes(event, packageName);
+			try
+			{
+				log("Processing package: " + packageName);
+				removeRecipes(event, packageName);
+				addRecipes(event, packageName);
+			}
+			catch (IOException e)
+			{
+				logErr("Error processing package: " + packageName);
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
-	private static void removeRecipes(EventTime event, String packageName)
+	private static void removeRecipes(EventTime event, String packageName) throws IOException
 	{
-		try
-		{
-			ClassPath classpath = ClassPath.from(RecipeTweakingCore.class.getClassLoader());
-			Set<ClassInfo> classes = classpath.getTopLevelClasses(packageName);
+		ClassPath classpath = ClassPath.from(RecipeTweakingCore.class.getClassLoader());
+		Set<ClassInfo> classes = classpath.getTopLevelClasses(packageName);
 
-			for (ClassInfo c : classes)
+		for (ClassInfo c : classes)
+		{
+			for (Method m : loadClassSafe(c))
 			{
-				for (Method m : loadClassSafe(c))
+				RecipeRemoval r = m.getAnnotation(RecipeRemoval.class);
+				if (r != null && allModsLoaded(r.requiredModids()) && r.time() == event)
 				{
-					RecipeRemoval r = m.getAnnotation(RecipeRemoval.class);
-					if (r != null && allModsLoaded(r.requiredModids()) && r.time() == event)
+					try
 					{
+						log("Processing remove method \"" + m.getName() + "\" in class \"" + c.getName() + "\"");
 						m.invoke(null, new Object[] {});
+					}
+					catch (Throwable t)
+					{
+						logErr("[Removals] An exception was thrown processing \"" + m.getName() + "\" in class \"" + c.getName() + "\"" + "these removals will likely not occur.");
+						t.printStackTrace();
 					}
 				}
 			}
-		}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			logger.severe("[Removals] An exception was thrown processing a class, these removals will likely not occur.");
 		}
 
 		TweakingRegistry.removeRecipes();
 	}
 
-	private static void addRecipes(EventTime event, String packageName)
+	private static void addRecipes(EventTime event, String packageName) throws IOException
 	{
-		try
-		{
-			ClassPath classpath = ClassPath.from(RecipeTweakingCore.class.getClassLoader());
-			Set<ClassInfo> classes = classpath.getTopLevelClasses(packageName);
 
-			for (ClassInfo c : classes)
+		ClassPath classpath = ClassPath.from(RecipeTweakingCore.class.getClassLoader());
+		Set<ClassInfo> classes = classpath.getTopLevelClasses(packageName);
+
+		for (ClassInfo c : classes)
+		{
+			for (Method m : loadClassSafe(c))
 			{
-				for (Method m : loadClassSafe(c))
+				RecipeAddition r = m.getAnnotation(RecipeAddition.class);
+				if (r != null && allModsLoaded(r.requiredModids()) && r.time() == event)
 				{
-					RecipeAddition r = m.getAnnotation(RecipeAddition.class);
-					if (r != null && allModsLoaded(r.requiredModids()) && r.time() == event)
+					try
 					{
+						log("Processing add method \"" + m.getName() + "\" in class \"" + c.getName() + "\"");
 						m.invoke(null, new Object[] {});
+					}
+					catch (Throwable t)
+					{
+						logErr("[Additions] An exception was thrown processing \"" + m.getName() + "\" in class \"" + c.getName() + "\"" + "these additions will likely not occur.");
+						t.printStackTrace();
 					}
 				}
 			}
 		}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			logger.severe("[Additions] An exception was thrown processing a class, these additons will likely not occur.");
-		}
 	}
-	
+
 	private static Method[] loadClassSafe(ClassInfo c)
 	{
 		try
@@ -132,8 +142,8 @@ public class RecipeTweakingCore
 		}
 		catch (Throwable t)
 		{
-			logger.info(String.format("Class %s threw an error, skipping...", c.getName()));
-			return new Method[]{};
+			logErr(String.format("Class %s threw an error on load, skipping...", c.getName()));
+			return new Method[] {};
 		}
 	}
 
@@ -145,5 +155,15 @@ public class RecipeTweakingCore
 				return false;
 		}
 		return true;
+	}
+	
+	public static void log(String msg)
+	{
+		System.out.println("[RTC] " + msg);
+	}
+	
+	public static void logErr(String msg)
+	{
+		System.err.println("[RTC] " + msg);
 	}
 }

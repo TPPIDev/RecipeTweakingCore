@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RecipeAddition
 {
-	public enum EventTime { INIT, POST_INIT, PLAYER_JOIN }
+	public enum EventTime { INIT, POST_INIT, WORLD_LOAD }
 	
 	/**
 	 * The {@link EventTime} at which this method is to be executed
