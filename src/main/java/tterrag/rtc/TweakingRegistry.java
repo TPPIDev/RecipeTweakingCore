@@ -104,7 +104,6 @@ public class TweakingRegistry
 			ItemStack output = r.getRecipeOutput();
 			if (output == null) return false;
 			HashSet<Integer> validMetas = recipesToRemove.get(output.itemID);
-			if (output.itemID < 500) return false;
 			if (validMetas == null) return false;
 			return validMetas.contains(-1) || validMetas.contains(output.getItemDamage());
 		}
