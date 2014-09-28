@@ -6,6 +6,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.minecraftforge.common.MinecraftForge;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import tterrag.rtc.RecipeAddition.EventTime;
 
 import com.google.common.reflect.ClassPath;
@@ -18,7 +22,7 @@ import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 
-@Mod(modid = "recipeTweakingCore", name = "Recipe Tweaking Core", version = "1.0.0")
+@Mod(modid = "recipetweakingcore", name = "Recipe Tweaking Core", version = "1.1.0")
 public class RecipeTweakingCore
 {
 	@Instance
@@ -27,6 +31,8 @@ public class RecipeTweakingCore
 	public static HashSet<String> packageNames = new HashSet<String>();
 
 	static boolean donePlayerJoinTweaks = false;
+	
+	public static final Logger logger = LogManager.getLogger("RTC");
 
 	@EventHandler
 	public void init(FMLInitializationEvent event)
@@ -157,11 +163,11 @@ public class RecipeTweakingCore
 	
 	public static void log(String msg)
 	{
-		System.out.println("[RTC] " + msg);
+		logger.info(msg);
 	}
 	
 	public static void logErr(String msg)
 	{
-		System.err.println("[RTC] " + msg);
+		logger.error(msg);
 	}
 }
