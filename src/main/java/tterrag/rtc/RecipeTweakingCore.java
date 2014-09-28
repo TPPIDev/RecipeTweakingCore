@@ -17,10 +17,8 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.network.NetworkMod;
 
 @Mod(modid = "recipeTweakingCore", name = "Recipe Tweaking Core", version = "1.0.0")
-@NetworkMod(serverSideRequired = true, clientSideRequired = true)
 public class RecipeTweakingCore
 {
 	@Instance

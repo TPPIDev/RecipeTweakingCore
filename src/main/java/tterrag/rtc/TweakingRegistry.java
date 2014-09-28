@@ -4,18 +4,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ListIterator;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
-import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.world.WorldEvent;
 import tterrag.rtc.RecipeAddition.EventTime;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class TweakingRegistry
 {
-	private static HashMap<Integer, HashSet<Integer>> recipesToRemove = new HashMap<Integer, HashSet<Integer>>();
+	private static HashMap<Item, HashSet<Integer>> recipesToRemove = new HashMap<Item, HashSet<Integer>>();
 
-	private static HashMap<Integer, HashMap<Integer, String[]>> removalReasons = new HashMap<Integer, HashMap<Integer,String[]>>();
+	private static HashMap<Item, HashMap<Integer, String[]>> removalReasons = new HashMap<Item, HashMap<Integer,String[]>>();
 	
 	public enum TweakingAction
 	{
@@ -43,11 +44,11 @@ public class TweakingRegistry
 	 * @param id - ID of the item/block being removed
 	 * @param damage - damage value/ metadata (-1 for all)
 	 */
-	public static void markItemForRecipeRemoval(int id, int damage) {	
-		if(!recipesToRemove.containsKey(id)) {
-			recipesToRemove.put(id, new HashSet<Integer>());
+	public static void markItemForRecipeRemoval(Item item, int damage) {	
+		if(!recipesToRemove.containsKey(item)) {
+			recipesToRemove.put(item, new HashSet<Integer>());
 		}
-		recipesToRemove.get(id).add(damage);
+		recipesToRemove.get(item).add(damage);
 	}
 	
 	/**
@@ -57,19 +58,19 @@ public class TweakingRegistry
 	 * @param action
 	 * @param details
 	 */
-	public static void markItemForRecipeRemoval(int id, int damage, TweakingAction action, String... details) {	
-		markItemForRecipeRemoval(id, damage);
-		addTweakedTooltip(id, damage, action, details);
+	public static void markItemForRecipeRemoval(Item item, int damage, TweakingAction action, String... details) {	
+		markItemForRecipeRemoval(item, damage);
+		addTweakedTooltip(item, damage, action, details);
 	}
 	
 	/**
 	 * Currently unused, will eventually be to add tooltips to tweaked items automatically
 	 */
-	public static void addTweakedTooltip(int id, int damage, TweakingAction action, String... details)
+	public static void addTweakedTooltip(Item item, int damage, TweakingAction action, String... details)
 	{
-		if (!removalReasons.containsKey(id))
+		if (!removalReasons.containsKey(item))
 		{
-			removalReasons.put(id, new HashMap<Integer, String[]>());
+			removalReasons.put(item, new HashMap<Integer, String[]>());
 		}
 		
 		String[] lines = new String[details.length + 1];
@@ -78,7 +79,7 @@ public class TweakingRegistry
 		for (int i = 1; i < lines.length; i++)
 			lines[i] = details[i - 1];
 		
-		removalReasons.get(id).put(damage, lines);
+		removalReasons.get(item).put(damage, lines);
 	}
 
 	
@@ -103,7 +104,7 @@ public class TweakingRegistry
 		{
 			ItemStack output = r.getRecipeOutput();
 			if (output == null) return false;
-			HashSet<Integer> validMetas = recipesToRemove.get(output.itemID);
+			HashSet<Integer> validMetas = recipesToRemove.get(output.getItem());
 			if (validMetas == null) return false;
 			return validMetas.contains(-1) || validMetas.contains(output.getItemDamage());
 		}
@@ -120,31 +121,31 @@ public class TweakingRegistry
 	 * 			   <br>- [1] - damage (can be ommitted)<p>
 	 * 						No further data will be analyzed
 	 */
-	static boolean contains(int id, int damage)
+	static boolean contains(Item item, int damage)
 	{
-		return removalReasons.get(id) != null && removalReasons.get(id).containsKey(damage);
+		return removalReasons.get(item) != null && removalReasons.get(item).containsKey(damage);
 	}
 	
 	/**
 	 * The tooltip associated with this ID/damage
-	 * @param id
+	 * @param item
 	 * @param damage - no sensitivity = -1
 	 * @return null if no tooltip associated
 	 */
-	static String[] getTooltip(int id, int damage)
+	static String[] getTooltip(Item item, int damage)
 	{
-		if (contains(id, damage))
+		if (contains(item, damage))
 		{
-			return removalReasons.get(id).get(damage);
+			return removalReasons.get(item).get(damage);
 		}
-		else if (contains(id, -1))
+		else if (contains(item, -1))
 		{
-			return removalReasons.get(id).get(-1);
+			return removalReasons.get(item).get(-1);
 		}
 		return null;
 	}
 	
-	@ForgeSubscribe
+	@SubscribeEvent
 	public void onWorldLoad(WorldEvent.Load event)
 	{
 		if (!RecipeTweakingCore.donePlayerJoinTweaks)
